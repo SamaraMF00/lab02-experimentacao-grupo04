@@ -1,6 +1,9 @@
 import csv
 import requests
 from datetime import datetime
+import subprocess
+import shutil
+import os
 
 def calculate_age(created_at):
     created_at_date = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%SZ")
@@ -26,8 +29,17 @@ def get_repository_info(repository):
         'Repository age (days)': maturity,
     }
 
+def download_repository(repo_url):
+    os.system(f"git clone {repo_url}")
+
+def execute_ck(directory):
+    subprocess.run(["ck", "analyze", directory])
+    
+def delete_repository(directory):
+    shutil.rmtree(directory)
+
 def main():
-    token = TOKEN
+    token = 'TOKEN'
     headers = {'Authorization': f'Bearer {token}'}
     endpoint = 'https://api.github.com/graphql'
     query = '''
@@ -63,11 +75,11 @@ def main():
               }
             }
           }
-            }
-          }
         }
       }
     }
+  }
+}
     '''   
 
     repositories_info = []
@@ -89,7 +101,17 @@ def main():
 
         for repository in data['data']['search']['edges']:           
             repository_info = get_repository_info(repository)
-            repositories_info.append(repository_info)            
+            repositories_info.append(repository_info) 
+
+            # Download repository
+            repo_url = f"https://github.com/{repository_info['Repository owner']}/{repository_info['Repository name']}.git"
+            download_repository.download_repository(repo_url)
+
+            # Execute CK
+            execute_ck.execute_ck(repository_info['Repository name'])
+
+            # Delete repository
+            delete_repository.delete_repository(repository_info['Repository name'])
 
         if data['data']['search']['pageInfo']['hasNextPage']:
             end_cursor = data['data']['search']['pageInfo']['endCursor']
@@ -98,17 +120,14 @@ def main():
 
         repoCont += 20            
 
-    # for info in repositories_info:
-    #     print(info)
-    #     print()
-
-    with open('repositories_info.csv', 'w', newline='') as fp:
-        fieldnames = repositories_info[0].keys()
+    # Write CK results to CSV
+    with open('ck_results.csv', 'w', newline='') as fp:
+        fieldnames = ['Repository name', 'CK Result']
         writer = csv.DictWriter(fp, fieldnames=fieldnames)
         
         writer.writeheader()
         for info in repositories_info:
-            writer.writerow(info)
+            writer.writerow({'Repository name': info['Repository name'], 'CK Result': 'Your CK result here'})
 
 if __name__ == "__main__":
     main()
