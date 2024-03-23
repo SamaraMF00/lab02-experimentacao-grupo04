@@ -31,7 +31,7 @@ def download_repository(repo_url):
     os.system(f"git clone {repo_url}")
 
 def execute_ck(project_dir, output_dir):
-    subprocess.run(["java", "-jar", "C:/Codes/ck/target/ck-0.7.1-SNAPSHOT-jar-with-dependencies.jar", project_dir, "true", "0", "true", output_dir])
+    subprocess.run(["java", "-jar", "../ck/target/ck-0.7.1-SNAPSHOT-jar-with-dependencies.jar", project_dir, "true", "0", "true", output_dir])
     
 # def delete_repository(directory):
 #     shutil.rmtree(directory)
@@ -42,34 +42,34 @@ def main():
     endpoint = 'https://api.github.com/graphql'
     query = '''
     query ($after: String!) {
-  search(query: "stars:>1 language:Java", type: REPOSITORY, first: 1, after: $after) {
-    pageInfo {
-      endCursor
-      startCursor
-      hasNextPage
-      hasPreviousPage
-    }
-    edges {
-      node {
-        ... on Repository {
-          name
-          createdAt
-          updatedAt
-          owner {
-            login
-          }
-          releases {
-            totalCount
-          }
-          stargazers {
-            totalCount
-          }
+        search(query: "stars:>1 language:Java filename:*.java", type: REPOSITORY, first: 1, after: $after) {
+            pageInfo {
+                endCursor
+                startCursor
+                hasNextPage
+                hasPreviousPage
+            }
+            edges {
+                node {
+                    ... on Repository {
+                        name
+                        createdAt
+                        updatedAt
+                        owner {
+                            login
+                        }
+                        releases {
+                            totalCount
+                        }
+                        stargazers {
+                            totalCount
+                        }
+                    }
+                }
+            }
         }
-      }
     }
-  }
-}
-    '''   
+'''   
 
     repositories_info = []
     has_next_page = True
@@ -98,7 +98,7 @@ def main():
             download_repository(repo_url)
 
             # Execute CK
-            execute_ck(f"C:/../lab02-experimentacao-grupo04/{repository_info['Repository name']}", "C:/Codes/lab02-experimentacao-grupo04/scripts/dataset")
+            execute_ck(f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}", "../lab02-experimentacao-grupo04/scripts/dataset/")
 
             # Delete repository
             # delete_repository(repository_info['Repository name'])
@@ -110,14 +110,6 @@ def main():
 
         repoCont += 20            
 
-    # Write CK results to CSV
-    # with open('ck_results.csv', 'w', newline='') as fp:
-    #     fieldnames = ['Repository name', 'CK Result']
-    #     writer = csv.DictWriter(fp, fieldnames=fieldnames)
-        
-    #     writer.writeheader()
-    #     for info in repositories_info:
-    #         writer.writerow({'Repository name': info['Repository name'], 'CK Result': 'Your CK result here'})
 
 if __name__ == "__main__":
     main()
