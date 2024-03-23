@@ -27,11 +27,11 @@ def get_repository_info(repository):
         'Repository age (days)': maturity,
     }
 
-def download_repository(repo_url):
-    os.system(f"git clone {repo_url}")
+# def download_repository(repo_url):
+#     os.system(f"git clone {repo_url}")
 
-def execute_ck(project_dir, output_dir):
-    subprocess.run(["java", "-jar", "../ck/target/ck-0.7.1-SNAPSHOT-jar-with-dependencies.jar", project_dir, "true", "0", "true", output_dir])
+# def execute_ck(project_dir, output_dir):
+    # subprocess.run(["java", "-jar", "../ck/target/ck-0.7.1-SNAPSHOT-jar-with-dependencies.jar", project_dir, "true", "0", "true", output_dir])
     
 # def delete_repository(directory):
 #     shutil.rmtree(directory)
@@ -42,7 +42,7 @@ def main():
     endpoint = 'https://api.github.com/graphql'
     query = '''
     query ($after: String!) {
-        search(query: "stars:>1 language:Java filename:*.java", type: REPOSITORY, first: 1, after: $after) {
+        search(query: "stars:>1 filename:*.java", type: REPOSITORY, first: 20, after: $after) {
             pageInfo {
                 endCursor
                 startCursor
@@ -77,7 +77,7 @@ def main():
     variables = {}
     repoCont = 0
 
-    while has_next_page and repoCont < 1:
+    while has_next_page and len(repositories_info) < 1000:
         if end_cursor == "":
             query_starter = query.replace(', after: $after', "")
             query_starter = query_starter.replace('($after: String!)', "")
@@ -94,11 +94,11 @@ def main():
             repositories_info.append(repository_info) 
 
             # Download repository
-            repo_url = f"https://github.com/{repository_info['Repository owner']}/{repository_info['Repository name']}.git"
-            download_repository(repo_url)
+            # repo_url = f"https://github.com/{repository_info['Repository owner']}/{repository_info['Repository name']}.git"
+            # download_repository(repo_url)
 
             # Execute CK
-            execute_ck(f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}", "../lab02-experimentacao-grupo04/scripts/dataset/")
+            # execute_ck(f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}", "../lab02-experimentacao-grupo04/scripts/dataset/")
 
             # Delete repository
             # delete_repository(repository_info['Repository name'])
@@ -110,6 +110,14 @@ def main():
 
         repoCont += 20            
 
+    # Create csv repository list
+    with open('repositories_info.csv', 'w', newline='') as fp:
+        fieldnames = repositories_info[0].keys()
+        writer = csv.DictWriter(fp, fieldnames=fieldnames)
+        
+        writer.writeheader()
+        for info in repositories_info:
+            writer.writerow(info)
 
 if __name__ == "__main__":
     main()
