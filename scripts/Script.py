@@ -16,7 +16,6 @@ def get_repository_info(repository):
     name = repo_node['name']
     owner = repo_node['owner']['login']
     popularity = repo_node['stargazers']
-    size = repo_node['languages']['code_lines']
     activity = repo_node['releases']['totalCount']
     maturity = calculate_age(repo_node['createdAt'])
 
@@ -24,7 +23,6 @@ def get_repository_info(repository):
         'Repository name': name,
         'Repository owner': owner,
         'Popularity - Stars': popularity,
-        'Size': size,
         'Total releases': activity,
         'Repository age (days)': maturity,
     }
@@ -43,7 +41,7 @@ def main():
     headers = {'Authorization': f'Bearer {token}'}
     endpoint = 'https://api.github.com/graphql'
     query = '''
-    query ($after: String) {
+    query ($after: String!) {
   search(query: "stars:>1 language:Java", type: REPOSITORY, first: 1, after: $after) {
     pageInfo {
       endCursor
@@ -68,12 +66,6 @@ def main():
           }
           languages(first: 1) {
             totalCount
-            edges {
-              code_lines: size
-              node {
-                name
-              }
-            }
           }
         }
       }
@@ -88,7 +80,7 @@ def main():
     variables = {}
     repoCont = 0
 
-    while has_next_page and repoCont < 1000:
+    while has_next_page and repoCont < 1:
         if end_cursor == "":
             query_starter = query.replace(', after: $after', "")
             query_starter = query_starter.replace('($after: String!)', "")
@@ -99,19 +91,21 @@ def main():
 
         data = response.json()
 
+
+
         for repository in data['data']['search']['edges']:           
             repository_info = get_repository_info(repository)
             repositories_info.append(repository_info) 
 
             # Download repository
             repo_url = f"https://github.com/{repository_info['Repository owner']}/{repository_info['Repository name']}.git"
-            download_repository.download_repository(repo_url)
+            download_repository(repo_url)
 
             # Execute CK
-            execute_ck.execute_ck(repository_info['Repository name'])
+            # execute_ck(repository_info['Repository name'])
 
             # Delete repository
-            delete_repository.delete_repository(repository_info['Repository name'])
+            # delete_repository(repository_info['Repository name'])
 
         if data['data']['search']['pageInfo']['hasNextPage']:
             end_cursor = data['data']['search']['pageInfo']['endCursor']
