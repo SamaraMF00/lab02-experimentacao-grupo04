@@ -28,13 +28,13 @@ def get_repository_info(repository):
     }
 
 # def download_repository(repo_url):
-#     os.system(f"git clone {repo_url}")
+os.system(f"git clone {repo_url}")
 
 # def execute_ck(project_dir, output_dir):
-    # subprocess.run(["java", "-jar", "../ck/target/ck-0.7.1-SNAPSHOT-jar-with-dependencies.jar", project_dir, "true", "0", "true", output_dir])
+subprocess.run(["java", "-jar", "../ck/target/ck-0.7.1-SNAPSHOT-jar-with-dependencies.jar", project_dir, "true", "0", "true", output_dir])
     
 # def delete_repository(directory):
-#     shutil.rmtree(directory)
+    # shutil.rmtree(directory)
 
 def main():
     token = 'TOKEN'
@@ -72,12 +72,12 @@ def main():
 '''   
 
     repositories_info = []
-    has_next_page = True
+    # has_next_page = True
     end_cursor = ""
     variables = {}
     repoCont = 0
 
-    while has_next_page and len(repositories_info) < 1000:
+    while len(repositories_info) < 1000:
         if end_cursor == "":
             query_starter = query.replace(', after: $after', "")
             query_starter = query_starter.replace('($after: String!)', "")
@@ -94,19 +94,19 @@ def main():
             repositories_info.append(repository_info) 
 
             # Download repository
-            # repo_url = f"https://github.com/{repository_info['Repository owner']}/{repository_info['Repository name']}.git"
-            # download_repository(repo_url)
+            repo_url = f"https://github.com/{repository_info['Repository owner']}/{repository_info['Repository name']}.git"
+            download_repository(repo_url)
 
             # Execute CK
-            # execute_ck(f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}", "../lab02-experimentacao-grupo04/scripts/dataset/")
+            execute_ck(f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}", "../lab02-experimentacao-grupo04/scripts/dataset/")
 
             # Delete repository
             # delete_repository(repository_info['Repository name'])
 
         if data['data']['search']['pageInfo']['hasNextPage']:
             end_cursor = data['data']['search']['pageInfo']['endCursor']
-        else:
-            has_next_page = False
+        # else:
+        #     has_next_page = False
 
         repoCont += 20            
 
