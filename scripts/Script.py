@@ -27,12 +27,29 @@ def get_repository_info(repository):
         'Repository age (days)': maturity,
     }
 
-# def download_repository(repo_url):
-os.system(f"git clone {repo_url}")
+def read_ck_csv(csv_file):
+    metrics = {'cbo': 0, 'dit': 0, 'lcom': 0, 'loc': 0}
+    with open(csv_file, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            for metric in metrics:
+                metrics[metric] += int(row[metric])
+    return metrics
 
-# def execute_ck(project_dir, output_dir):
-subprocess.run(["java", "-jar", "../ck/target/ck-0.7.1-SNAPSHOT-jar-with-dependencies.jar", project_dir, "true", "0", "true", output_dir])
-    
+def write_metric_result(metrics, output_file):
+    with open(output_file, 'w', newline='') as csvfile:
+        fieldnames = ['Metric', 'Total']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for metric, total in metrics.items():
+            writer.writerow({'Metric': metric, 'Total': total})
+
+def download_repository(repo_url):
+    os.system(f"git clone {repo_url}")
+
+def execute_ck(project_dir, output_dir):
+    subprocess.run(["java", "-jar", "../ck/target/ck-0.7.1-SNAPSHOT-jar-with-dependencies.jar", project_dir, "true", "0", "true", output_dir])
+
 # def delete_repository(directory):
     # shutil.rmtree(directory)
 
@@ -42,7 +59,7 @@ def main():
     endpoint = 'https://api.github.com/graphql'
     query = '''
     query ($after: String!) {
-        search(query: "stars:>1 filename:*.java", type: REPOSITORY, first: 20, after: $after) {
+        search(query: "stars:>1 filename:*.java", type: REPOSITORY, first: 1, after: $after) {
             pageInfo {
                 endCursor
                 startCursor
@@ -69,7 +86,7 @@ def main():
             }
         }
     }
-'''   
+'''
 
     repositories_info = []
     # has_next_page = True
@@ -77,7 +94,9 @@ def main():
     variables = {}
     repoCont = 0
 
-    while len(repositories_info) < 1000:
+    # Change "while" to run once
+    # while has_next_page and len(repositories_info) < 1:
+    while len(repositories_info) < 1:
         if end_cursor == "":
             query_starter = query.replace(', after: $after', "")
             query_starter = query_starter.replace('($after: String!)', "")
@@ -87,7 +106,6 @@ def main():
             response = requests.post(endpoint, json={'query': query, 'variables': variables}, headers=headers)
 
         data = response.json()
-
 
         for repository in data['data']['search']['edges']:           
             repository_info = get_repository_info(repository)
@@ -100,6 +118,14 @@ def main():
             # Execute CK
             execute_ck(f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}", "../lab02-experimentacao-grupo04/scripts/dataset/")
 
+            # Read CK CSV and sum metrics
+            csv_file = f"../lab02-experimentacao-grupo04/scripts/dataset/class.csv"
+            metrics = read_ck_csv(csv_file)
+
+            # Write metric result to CSV
+            output_file = f"../lab02-experimentacao-grupo04/scripts/dataset/metricresult.csv"
+            write_metric_result(metrics, output_file)
+
             # Delete repository
             # delete_repository(repository_info['Repository name'])
 
@@ -108,16 +134,16 @@ def main():
         # else:
         #     has_next_page = False
 
-        repoCont += 20            
+        repoCont += 20
 
-    # Create csv repository list
-    with open('repositories_info.csv', 'w', newline='') as fp:
-        fieldnames = repositories_info[0].keys()
-        writer = csv.DictWriter(fp, fieldnames=fieldnames)
+    # Create csv: 1000 repository list
+    # with open('repositories_info.csv', 'w', newline='') as fp:
+    #     fieldnames = repositories_info[0].keys()
+    #     writer = csv.DictWriter(fp, fieldnames=fieldnames)
         
-        writer.writeheader()
-        for info in repositories_info:
-            writer.writerow(info)
-
+    #     writer.writeheader()
+    #     for info in repositories_info:
+    #         writer.writerow(info)
+        
 if __name__ == "__main__":
     main()
