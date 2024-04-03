@@ -89,14 +89,14 @@ def main():
 '''
 
     repositories_info = []
-    # has_next_page = True
+    has_next_page = True
     end_cursor = ""
     variables = {}
     repoCont = 0
 
     # Change "while" to run once
-    # while has_next_page and len(repositories_info) < 1:
-    while len(repositories_info) < 1:
+    while has_next_page and len(repositories_info) < 1:
+    # while len(repositories_info) < 1:
         if end_cursor == "":
             query_starter = query.replace(', after: $after', "")
             query_starter = query_starter.replace('($after: String!)', "")
@@ -116,14 +116,14 @@ def main():
             download_repository(repo_url)
 
             # Execute CK
-            execute_ck(f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}", "../lab02-experimentacao-grupo04/scripts/dataset/")
+            execute_ck(f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}", f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}/")
 
             # Read CK CSV and sum metrics
-            csv_file = f"../lab02-experimentacao-grupo04/scripts/dataset/class.csv"
+            csv_file = f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}/class.csv"
             metrics = read_ck_csv(csv_file)
 
             # Write metric result to CSV
-            output_file = f"../lab02-experimentacao-grupo04/scripts/dataset/metricresult.csv"
+            output_file = f"../lab02-experimentacao-grupo04/scripts/dataset/repositories_info_ck.csv"
             write_metric_result(metrics, output_file)
 
             # Delete repository
@@ -131,13 +131,13 @@ def main():
 
         if data['data']['search']['pageInfo']['hasNextPage']:
             end_cursor = data['data']['search']['pageInfo']['endCursor']
-        # else:
-        #     has_next_page = False
+        else:
+            has_next_page = False
 
         repoCont += 20
 
     # Create csv: 1000 repository list
-    # with open('repositories_info.csv', 'w', newline='') as fp:
+    # with open('repositories_info_graphql.csv', 'w', newline='') as fp:
     #     fieldnames = repositories_info[0].keys()
     #     writer = csv.DictWriter(fp, fieldnames=fieldnames)
         
