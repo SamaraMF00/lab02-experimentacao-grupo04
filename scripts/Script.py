@@ -50,8 +50,9 @@ def download_repository(repo_url):
 def execute_ck(project_dir, output_dir):
     subprocess.run(["java", "-jar", "../ck/target/ck-0.7.1-SNAPSHOT-jar-with-dependencies.jar", project_dir, "true", "0", "true", output_dir])
 
-# def delete_repository(directory):
-    # shutil.rmtree(directory)
+def delete_repository(directory):
+    shutil.rmtree(directory)
+
 
 def main():
     token = 'TOKEN'
@@ -96,7 +97,7 @@ def main():
 
     # Change "while" to run once
     while has_next_page and len(repositories_info) < 1:
-    # while len(repositories_info) < 1:
+    # while len(repositories_info) < 2:
         if end_cursor == "":
             query_starter = query.replace(', after: $after', "")
             query_starter = query_starter.replace('($after: String!)', "")
@@ -127,7 +128,7 @@ def main():
             write_metric_result(metrics, output_file)
 
             # Delete repository
-            # delete_repository(repository_info['Repository name'])
+            delete_repository(f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}")
 
         if data['data']['search']['pageInfo']['hasNextPage']:
             end_cursor = data['data']['search']['pageInfo']['endCursor']
