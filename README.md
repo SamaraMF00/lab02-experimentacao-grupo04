@@ -7,9 +7,10 @@
 
 ## Integrantes do grupo:
 
-* Nome completo
-* Nome completo
-* Nome completo ...
+* Matheus Andrade
+* Rafael Chequer
+* Samara Ferreira
+* Victor Fonseca
 
 ## Artefatos:
 
