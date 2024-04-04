@@ -2,7 +2,6 @@ import csv
 import requests
 from datetime import datetime
 import subprocess
-import shutil
 import os
 
 def calculate_age(created_at):
@@ -51,12 +50,12 @@ def write_info_ck_csv(metrics, repo_name, output_file):
 
 def download_repository(repo_url):
     os.system(f"git clone {repo_url}")
-
+ 
 def execute_ck(project_dir, output_dir):
     subprocess.run(["java", "-jar", "../ck/target/ck-0.7.1-SNAPSHOT-jar-with-dependencies.jar", project_dir, "true", "0", "true", output_dir])
 
 def delete_repository(directory):
-    shutil.rmtree(directory)
+    os.system(f'rmdir /s /q {directory}')
 
 def main():
     token = 'TOKEN'
@@ -94,12 +93,10 @@ def main():
 '''
 
     repositories_info = []
-    # has_next_page = True
     end_cursor = ""
     variables = {}
     repoCont = 0
 
-    # while has_next_page and len(repositories_info) < 1:
     while len(repositories_info) < 1:
         if end_cursor == "":
             query_starter = query.replace(', after: $after', "")
@@ -131,12 +128,10 @@ def main():
             write_info_ck_csv(metrics, repository_info['Repository name'], output_file)
 
             # Delete repository
-            delete_repository(f"../lab02-experimentacao-grupo04/{repository_info['Repository name']}")
+            delete_repository(f"{repository_info['Repository name']}")
 
         if data['data']['search']['pageInfo']['hasNextPage']:
             end_cursor = data['data']['search']['pageInfo']['endCursor']
-        # else:
-        #     has_next_page = False
 
         repoCont += 20
 
